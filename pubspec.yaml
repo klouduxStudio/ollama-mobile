@@ -4,8 +4,8 @@ publish_to: 'none'
 version: 1.2.0+9
 
 environment:
-  sdk: '>=3.3.4 <4.0.0'
-  flutter: 3.29.0
+  sdk: '>=3.8.1 <4.0.0'
+  flutter: 3.35.0
 
 dependencies:
   flutter:
@@ -18,7 +18,6 @@ dependencies:
   flutter_chat_ui: ^1.6.13
   scroll_to_index: ^3.0.1
   uuid: ^4.4.0
-  animated_text_kit: ^4.2.2
   image_picker: ^1.1.1
   visibility_detector: ^0.4.0+2
   http: ^1.2.1
@@ -27,7 +26,6 @@ dependencies:
   transparent_image: ^2.0.1
   simple_icons: ^14.6.1
   url_launcher: ^6.2.6
-  flutter_markdown: ^0.7.1
   file_picker: ^8.0.3
   file_selector: ^1.0.3
   bitsdojo_window: ^0.1.6
@@ -37,16 +35,22 @@ dependencies:
   flutter_displaymode: ^0.6.0
   duration_picker: ^1.2.0
   speech_to_text: ^7.0.0
-  flutter_tts:
-    git:
-      url: https://github.com/mumu-lhl/flutter_tts.git
-      ref: 607fd86d44592407f9df5c980614c7bf7141f4f8
+  flutter_tts: ^4.2.3
   permission_handler: ^11.3.1
   datetime_loop: ^1.2.0
-  dynamic_color: ^1.7.0
-  volume_controller: ^3.3.1
   universal_html: ^2.2.4
   pwa_install: ^0.0.5
+  flutter_chat_types: any
+  markdown: ^7.3.0
+  flutter_math_fork: ^0.7.4
+  flutter_highlight:
+    git:
+      url: https://github.com/JHubi1/highlight.dart
+      path: flutter_highlight
+  ogp_data_extract: ^0.2.2
+  
+  # dynamic_color: ^1.7.0
+  dynamic_system_colors: ^1.8.0
 
 dev_dependencies:
   flutter_test:

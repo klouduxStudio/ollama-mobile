@@ -1,37 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:http/http.dart' as http;
+import 'package:ollama_dart/ollama_dart.dart' as llama;
+import 'package:uuid/uuid.dart';
 
+import '../l10n/gen/app_localizations.dart';
+import '../main.dart';
+import '../services/clients.dart';
 import 'desktop.dart';
 import 'haptic.dart';
-import '../main.dart';
 import 'sender.dart';
 import 'theme.dart';
-import 'clients.dart';
-
-import 'package:ollama_app/l10n/gen/app_localizations.dart';
-
-import 'package:dartx/dartx.dart';
-import 'package:ollama_dart/ollama_dart.dart' as llama;
-// ignore: depend_on_referenced_packages
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 
 void setModel(BuildContext context, Function setState) {
-  List<String> models = [];
-  List<String> modelsReal = [];
-  List<bool> modal = [];
-  int usedIndex = -1;
-  int oldIndex = -1;
-  int addIndex = -1;
-  bool loaded = false;
+  var models = <String>[];
+  var modelsReal = <String>[];
+  var modal = <bool>[];
+  var usedIndex = -1;
+  var oldIndex = -1;
+  var addIndex = -1;
+  var loaded = false;
   Function? setModalState;
   desktopTitleVisible = false;
   setState(() {});
-  void load() async {
+  Future<void> load() async {
     try {
       var list = await ollamaClient.listModels().timeout(Duration(
           seconds:
@@ -46,10 +43,8 @@ void setModel(BuildContext context, Function setState) {
       }
 
       addIndex = models.length;
-      // ignore: use_build_context_synchronously
-      models.add(AppLocalizations.of(context)!.modelDialogAddModel);
-      // ignore: use_build_context_synchronously
-      modelsReal.add(AppLocalizations.of(context)!.modelDialogAddModel);
+      models.add(AppLocalizations.of(context).modelDialogAddModel);
+      modelsReal.add(AppLocalizations.of(context).modelDialogAddModel);
       modal.add(false);
 
       for (var i = 0; i < modelsReal.length; i++) {
@@ -59,7 +54,7 @@ void setModel(BuildContext context, Function setState) {
         }
       }
       if (prefs!.getBool("modelTags") == null) {
-        List duplicateFinder = [];
+        var duplicateFinder = [];
         for (var model in models) {
           if (duplicateFinder.contains(model)) {
             prefs!.setBool("modelTags", true);
@@ -81,7 +76,7 @@ void setModel(BuildContext context, Function setState) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
               // ignore: use_build_context_synchronously
-              AppLocalizations.of(context)!.settingsHostInvalid("timeout")),
+              AppLocalizations.of(context).settingsHostInvalid("timeout")),
           showCloseIcon: true));
     }
   }
@@ -98,7 +93,7 @@ void setModel(BuildContext context, Function setState) {
         onPopInvokedWithResult: (didPop, result) async {
           if (!loaded) return;
           loaded = false;
-          bool preload = false;
+          var preload = false;
           if (usedIndex >= 0 && modelsReal[usedIndex] != model) {
             preload = true;
             if (prefs!.getBool("resetOnModelSelect") ??
@@ -146,7 +141,7 @@ void setModel(BuildContext context, Function setState) {
               // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   // ignore: use_build_context_synchronously
-                  content: Text(AppLocalizations.of(context)!
+                  content: Text(AppLocalizations.of(context)
                       .settingsHostInvalid("timeout")),
                   showCloseIcon: true));
               setState(() {
@@ -286,7 +281,7 @@ void setModel(BuildContext context, Function setState) {
           return Transform.translate(
             offset: desktopLayoutRequired(context)
                 ? const Offset(289, 0)
-                : const Offset(0, 0),
+                : Offset.zero,
             child: Dialog(
                 surfaceTintColor:
                     (Theme.of(context).brightness == Brightness.dark)
@@ -304,29 +299,28 @@ void setModel(BuildContext context, Function setState) {
   }
 }
 
-void addModel(BuildContext context, Function setState) async {
-  bool canceled = false;
-  bool networkError = false;
-  bool ratelimitError = false;
-  bool alreadyExists = false;
-  final String invalidText =
-      AppLocalizations.of(context)!.modelDialogAddPromptInvalid;
-  final networkErrorText =
-      AppLocalizations.of(context)!.settingsHostInvalid("other");
-  final timeoutErrorText =
-      AppLocalizations.of(context)!.settingsHostInvalid("timeout");
-  final ratelimitErrorText =
-      AppLocalizations.of(context)!.settingsHostInvalid("ratelimit");
-  final alreadyExistsText =
-      AppLocalizations.of(context)!.modelDialogAddPromptAlreadyExists;
-  final downloadSuccessText =
-      AppLocalizations.of(context)!.modelDialogAddDownloadSuccess;
-  final downloadFailedText =
-      AppLocalizations.of(context)!.modelDialogAddDownloadFailed;
+Future<void> addModel(BuildContext context, Function setState) async {
+  var canceled = false;
+  var networkError = false;
+  var ratelimitError = false;
+  var alreadyExists = false;
+  var invalidText = AppLocalizations.of(context).modelDialogAddPromptInvalid;
+  var networkErrorText =
+      AppLocalizations.of(context).settingsHostInvalid("other");
+  var timeoutErrorText =
+      AppLocalizations.of(context).settingsHostInvalid("timeout");
+  var ratelimitErrorText =
+      AppLocalizations.of(context).settingsHostInvalid("ratelimit");
+  var alreadyExistsText =
+      AppLocalizations.of(context).modelDialogAddPromptAlreadyExists;
+  var downloadSuccessText =
+      AppLocalizations.of(context).modelDialogAddDownloadSuccess;
+  var downloadFailedText =
+      AppLocalizations.of(context).modelDialogAddDownloadFailed;
   var requestedModel = await prompt(
     context,
-    title: AppLocalizations.of(context)!.modelDialogAddPromptTitle,
-    description: AppLocalizations.of(context)!.modelDialogAddPromptDescription,
+    title: AppLocalizations.of(context).modelDialogAddPromptTitle,
+    description: AppLocalizations.of(context).modelDialogAddPromptDescription,
     placeholder: "llama3:latest",
     enableSuggestions: false,
     validator: (content) async {
@@ -355,17 +349,17 @@ void addModel(BuildContext context, Function setState) async {
       var endpoint = "https://ollama.com/library/";
       if (kIsWeb) {
         if (!(prefs!.getBool("allowWebProxy") ?? false)) {
-          bool returnValue = false;
+          var returnValue = false;
           await showDialog(
               context: mainContext!,
               barrierDismissible: false,
               builder: (context) {
                 return AlertDialog(
-                    title: Text(AppLocalizations.of(context)!
+                    title: Text(AppLocalizations.of(context)
                         .modelDialogAddAllowanceTitle),
                     content: SizedBox(
                       width: 640,
-                      child: Text(AppLocalizations.of(context)!
+                      child: Text(AppLocalizations.of(context)
                           .modelDialogAddAllowanceDescription),
                     ),
                     actions: [
@@ -374,14 +368,14 @@ void addModel(BuildContext context, Function setState) async {
                             canceled = true;
                             Navigator.of(context).pop();
                           },
-                          child: Text(AppLocalizations.of(context)!
+                          child: Text(AppLocalizations.of(context)
                               .modelDialogAddAllowanceDeny)),
                       TextButton(
                           onPressed: () {
                             returnValue = true;
                             Navigator.of(context).pop();
                           },
-                          child: Text(AppLocalizations.of(context)!
+                          child: Text(AppLocalizations.of(context)
                               .modelDialogAddAllowanceAllow))
                     ]);
               });
@@ -402,17 +396,17 @@ void addModel(BuildContext context, Function setState) async {
         return false;
       }
       if (response.statusCode == 200) {
-        bool returnValue = false;
+        var returnValue = false;
         await showDialog(
             context: mainContext!,
             barrierDismissible: false,
             builder: (context) {
               return AlertDialog(
-                  title: Text(AppLocalizations.of(context)!
+                  title: Text(AppLocalizations.of(context)
                       .modelDialogAddAssuranceTitle(model)),
                   content: SizedBox(
                     width: 640,
-                    child: Text(AppLocalizations.of(context)!
+                    child: Text(AppLocalizations.of(context)
                         .modelDialogAddAssuranceDescription(model)),
                   ),
                   actions: [
@@ -421,14 +415,14 @@ void addModel(BuildContext context, Function setState) async {
                           canceled = true;
                           Navigator.of(context).pop();
                         },
-                        child: Text(AppLocalizations.of(context)!
+                        child: Text(AppLocalizations.of(context)
                             .modelDialogAddAssuranceCancel)),
                     TextButton(
                         onPressed: () {
                           returnValue = true;
                           Navigator.of(context).pop();
                         },
-                        child: Text(AppLocalizations.of(context)!
+                        child: Text(AppLocalizations.of(context)
                             .modelDialogAddAssuranceAdd))
                   ]);
             });
@@ -470,9 +464,9 @@ void addModel(BuildContext context, Function setState) async {
                     children: [
                       Text(
                         percent == null
-                            ? AppLocalizations.of(context)!
+                            ? AppLocalizations.of(context)
                                 .modelDialogAddDownloadPercentLoading
-                            : AppLocalizations.of(context)!
+                            : AppLocalizations.of(context)
                                 .modelDialogAddDownloadPercent(
                                     (percent * 100).round().toString()),
                       ),
@@ -483,15 +477,15 @@ void addModel(BuildContext context, Function setState) async {
         });
       });
   try {
-    final stream = ollamaClient
+    var stream = ollamaClient
         .pullModelStream(request: llama.PullModelRequest(model: requestedModel))
         .timeout(Duration(
             seconds: (10.0 * (prefs!.getDouble("timeoutMultiplier") ?? 1.0))
                 .round()));
-    bool alreadyProgressed = false;
-    await for (final res in stream) {
-      double tmpPercent =
-          ((res.completed ?? 0).toInt() / (res.total ?? 100).toInt());
+    var alreadyProgressed = false;
+    await for (var res in stream) {
+      var tmpPercent =
+          (res.completed ?? 0).toInt() / (res.total ?? 100).toInt();
       if ((tmpPercent * 100).round() == 0) {
         if (!alreadyProgressed) {
           percent = null;
@@ -511,7 +505,7 @@ void addModel(BuildContext context, Function setState) async {
     if (model!.split(":").length == 1) {
       model = "$model:latest";
     }
-    bool exists = false;
+    var exists = false;
     try {
       var request = await ollamaClient.listModels().timeout(Duration(
           seconds:
@@ -558,15 +552,15 @@ void addModel(BuildContext context, Function setState) async {
   }
 }
 
-void saveChat(String uuid, Function setState) async {
-  int index = -1;
+Future<void> saveChat(String uuid, Function setState) async {
+  var index = -1;
   for (var i = 0; i < (prefs!.getStringList("chats") ?? []).length; i++) {
     if (jsonDecode((prefs!.getStringList("chats") ?? [])[i])["uuid"] == uuid) {
       index = i;
     }
   }
   if (index == -1) return;
-  List<Map<String, String>> history = [];
+  var history = <Map<String, String>>[];
   for (var i = 0; i < messages.length; i++) {
     if ((jsonDecode(jsonEncode(messages[i])) as Map).containsKey("text")) {
       history.add({
@@ -575,7 +569,7 @@ void saveChat(String uuid, Function setState) async {
       });
     } else {
       var uri = jsonDecode(jsonEncode(messages[i]))["uri"] as String;
-      String content = (uri.startsWith("data:image/png;base64,"))
+      var content = (uri.startsWith("data:image/png;base64,"))
           ? uri.removePrefix("data:image/png;base64,")
           : base64.encode(await File(uri).readAsBytes());
       history.add({
@@ -591,8 +585,7 @@ void saveChat(String uuid, Function setState) async {
     for (var i = 0; i < (prefs!.getStringList("chats") ?? []).length; i++) {
       if (jsonDecode((prefs!.getStringList("chats") ?? [])[i])["uuid"] ==
           chatUuid) {
-        List<String> tmp = prefs!.getStringList("chats")!;
-        tmp.removeAt(i);
+        var tmp = prefs!.getStringList("chats")!..removeAt(i);
         prefs!.setStringList("chats", tmp);
         chatUuid = null;
         return;
@@ -621,23 +614,23 @@ void saveChat(String uuid, Function setState) async {
     history.add({"role": "system", "content": system});
   }
   history = history.reversed.toList();
-  List<String> tmp = prefs!.getStringList("chats") ?? [];
-  tmp.removeAt(index);
-  tmp.insert(
-      0,
-      jsonEncode({
-        "title":
-            jsonDecode((prefs!.getStringList("chats") ?? [])[index])["title"],
-        "uuid": uuid,
-        "model": model,
-        "messages": jsonEncode(history)
-      }));
+  var tmp = prefs!.getStringList("chats") ?? []
+    ..removeAt(index)
+    ..insert(
+        0,
+        jsonEncode({
+          "title":
+              jsonDecode((prefs!.getStringList("chats") ?? [])[index])["title"],
+          "uuid": uuid,
+          "model": model,
+          "messages": jsonEncode(history)
+        }));
   prefs!.setStringList("chats", tmp);
   setState(() {});
 }
 
 void loadChat(String uuid, Function setState) {
-  int index = -1;
+  var index = -1;
   for (var i = 0; i < (prefs!.getStringList("chats") ?? []).length; i++) {
     if (jsonDecode((prefs!.getStringList("chats") ?? [])[i])["uuid"] == uuid) {
       index = i;
@@ -675,75 +668,6 @@ void loadChat(String uuid, Function setState) {
   setState(() {});
 }
 
-Future<bool> deleteChatDialog(BuildContext context, Function setState,
-    {bool takeAction = true,
-    bool? additionalCondition,
-    String? uuid,
-    bool popSidebar = false}) async {
-  additionalCondition ??= true;
-  uuid ??= chatUuid;
-
-  bool returnValue = false;
-  void delete(BuildContext context) {
-    returnValue = true;
-    if (takeAction) {
-      for (var i = 0; i < (prefs!.getStringList("chats") ?? []).length; i++) {
-        if (jsonDecode((prefs!.getStringList("chats") ?? [])[i])["uuid"] ==
-            uuid) {
-          List<String> tmp = prefs!.getStringList("chats")!;
-          tmp.removeAt(i);
-          prefs!.setStringList("chats", tmp);
-          break;
-        }
-      }
-      if (chatUuid == uuid) {
-        messages = [];
-        chatUuid = null;
-        if (!desktopLayoutRequired(context) &&
-            Navigator.of(context).canPop() &&
-            popSidebar) {
-          Navigator.of(context).pop();
-        }
-      }
-    }
-  }
-
-  if ((prefs!.getBool("askBeforeDeletion") ?? false) && additionalCondition) {
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, setLocalState) {
-            return AlertDialog(
-                title: Text(AppLocalizations.of(context)!.deleteDialogTitle),
-                content: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text(AppLocalizations.of(context)!.deleteDialogDescription),
-                ]),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        selectionHaptic();
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                          AppLocalizations.of(context)!.deleteDialogCancel)),
-                  TextButton(
-                      onPressed: () {
-                        selectionHaptic();
-                        Navigator.of(context).pop();
-                        delete(context);
-                      },
-                      child: Text(
-                          AppLocalizations.of(context)!.deleteDialogDelete))
-                ]);
-          });
-        });
-  } else {
-    delete(context);
-  }
-  setState(() {});
-  return returnValue;
-}
-
 Future<String> prompt(BuildContext context,
     {String description = "",
     String value = "",
@@ -762,23 +686,22 @@ Future<String> prompt(BuildContext context,
     String? placeholder,
     bool prefill = true}) async {
   var returnText = (valueIfCanceled != null) ? valueIfCanceled : value;
-  final TextEditingController controller =
-      TextEditingController(text: prefill ? value : "");
-  bool loading = false;
+  var controller = TextEditingController(text: prefill ? value : "");
+  var loading = false;
   String? error;
   await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(builder: (context, setLocalState) {
-          void submit() async {
+          Future<void> submit() async {
             selectionHaptic();
             if (validator != null) {
               setLocalState(() {
                 error = null;
                 loading = true;
               });
-              bool valid = await validator(controller.text);
+              var valid = await validator(controller.text);
               setLocalState(() {
                 loading = false;
               });
@@ -841,17 +764,17 @@ Future<String> prompt(BuildContext context,
                                 errorText: error,
                                 suffixIcon: IconButton(
                                     enableFeedback: false,
-                                    tooltip: AppLocalizations.of(context)!
+                                    tooltip: AppLocalizations.of(context)
                                         .tooltipSave,
                                     onPressed: submit,
                                     icon: const Icon(Icons.save_rounded)),
                                 prefixIcon: (title ==
-                                            AppLocalizations.of(context)!
+                                            AppLocalizations.of(context)
                                                 .dialogEnterNewTitle &&
                                         uuid != null)
                                     ? IconButton(
                                         enableFeedback: false,
-                                        tooltip: AppLocalizations.of(context)!
+                                        tooltip: AppLocalizations.of(context)
                                             .tooltipLetAIThink,
                                         onPressed: () async {
                                           selectionHaptic();
@@ -877,7 +800,7 @@ Future<String> prompt(BuildContext context,
                                                       content: Text(
                                                           AppLocalizations.of(
                                                                   // ignore: use_build_context_synchronously
-                                                                  context)!
+                                                                  context)
                                                               .settingsHostInvalid(
                                                                   "timeout")),
                                                       showCloseIcon: true));
@@ -889,7 +812,7 @@ Future<String> prompt(BuildContext context,
                                     : prefixIcon)),
                         SizedBox(
                             height: 3,
-                            child: (loading)
+                            child: loading
                                 ? const LinearProgressIndicator()
                                 : const SizedBox.shrink()),
                         (MediaQuery.of(context).viewInsets.bottom != 0)
