@@ -1782,12 +1782,15 @@ class _ScreenMainState extends State<ScreenMain> {
   void initState() {
     super.initState();
 
-    host = "https://raspimainollama.tunler.net";
     ChatManager.instance.addListener(onUpdate);
     ModelManager.instance.addListener(onUpdate);
 
     prefsReady.future.then((_) async {
       if (!mounted) return;
+      
+      // Initialize host from preferences or use fixed host if configured
+      host = useHost ? fixedHost : prefs?.getString("host");
+      
       errorGuard(
         context,
         "Q3L4Z1X6",
