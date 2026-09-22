@@ -30,14 +30,14 @@ jobs:
       result: ${{ steps.version.outputs.result }}
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2.18.0
+      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff # v2.18.0
         with:
           channel: stable
           flutter-version-file: pubspec.yaml
           cache: true
       - name: Get flutter version
         id: version
-        uses: mikefarah/yq@master
+        uses: mikefarah/yq@1957ff45ed555eebe8206ba50c0e5e7800253783 # master
         with:
           cmd: yq -r '.version' 'pubspec.yaml' | awk -F'+' '{print $1}'
       - name: Disabling flutter analytics
@@ -97,7 +97,7 @@ jobs:
         id: compile
         run: flutter build windows --split-debug-info=build\debugWindows ${{ github.event.inputs.obfuscate == 'true' && '--obfuscate' || '' }}
       - name: Running installer build
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@b8e8eb5936437c243592fda645c96dfc6488c275 # v1.2.2
         with:
           path: .\windows_installer\ollama.iss
           options: /O+ /dAppVersion=${{ needs.analyze.outputs.result }}
